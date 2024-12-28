@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body>
+    <button id="logout-button" class="bg-red-500 text-white py-2 px-4 rounded fixed top-4 right-4 hidden">Log
+        Out</button>
+    <h1 class="text-center text-3xl font-bold mt-8">File Management</h1>
+
+    <section id="auth-section" class="flex justify-center mt-8">
+        <div class="w-full max-w-md mx-auto">
+            <div class="bg-white shadow-md rounded-lg p-6">
+                <h2 class="text-2xl font-bold mb-4 text-center">Welcome</h2>
+                <div class="flex justify-around mb-4">
+                    <button id="show-register"
+                        class="bg-blue-500 text-white py-2 px-4 rounded-md shadow hover:bg-blue-600">Register</button>
+                    <button id="show-login"
+                        class="bg-blue-500 text-white py-2 px-4 rounded-md shadow hover:bg-blue-600">Login</button>
+                </div>
+                <form id="register-form" class="space-y-4 hidden">
+                    <div class="form-group">
+                        <label for="register-username" class="block text-sm font-medium text-gray-700">Username</label>
+                        <input type="text" id="register-username" required
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
+                    </div>
+                    <div class="form-group">
+                        <label for="register-password" class="block text-sm font-medium text-gray-700">Password</label>
+                        <input type="password" id="register-password" required
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
+                    </div>
+                    <button type="submit"
+                        class="w-full bg-blue-500 text-white py-2 px-4 rounded-md shadow hover:bg-blue-600">Register</button>
+                </form>
+
+                <form id="login-form" class="space-y-4 hidden">
+                    <div class="form-group">
+                        <label for="login-username" class="block text-sm font-medium text-gray-700">Username</label>
+                        <input type="text" id="login-username" required
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password" class="block text-sm font-medium text-gray-700">Password</label>
+                        <input type="password" id="login-password" required
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
+                    </div>
+                    <button type="submit"
+                        class="w-full bg-blue-500 text-white py-2 px-4 rounded-md shadow hover:bg-blue-600">Login</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <section id="file-section" style="display: none;" class="flex justify-center mt-8">
+        <div class="w-full max-w-sm">
+            <h2 class="text-xl font-bold mb-4 text-center">Upload File</h2>
+            <form id="upload-form" class="bg-white shadow-md rounded-lg p-6">
+                <div class="form-group mb-4">
+                    <label for="file" class="block text-sm font-medium text-gray-700 mb-2">Choose File</label>
+                    <input type="file" id="file" required
+                        class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+                </div>
+                <button type="submit"
+                    class="w-full bg-blue-500 text-white py-2 px-4 rounded-md shadow hover:bg-blue-600">Upload</button>
+            </form>
+        </div>
+    </section>
+
+    <section id="uploaded-files-section" style="display: none;">
+        <h2 class="text-xl font-bold mb-4">Uploaded Files</h2>
+        <table id="files-table" class="min-w-full bg-white">
+            <thead>
+                <tr>
+                    <th class="py-2">File Name</th>
+                    <th class="py-2">File Type</th>
+                    <th class="py-2">File Size</th>
+                    <th class="py-2">Uploaded At</th>
+                    <th class="py-2">Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </section>
+
+    <script>
+        let token = '';
+        let userId = ''; // User ID dari pengguna yang login
+
+        document.getElementById('show-register').addEventListener('click', () => {
+            document.getElementById('register-form').classList.remove('hidden');
+            document.getElementById('login-form').classList.add('hidden');
+        });
+
+        document.getElementById('show-login').addEventListener('click', () => {
+            document.getElementById('login-form').classList.remove('hidden');
+            document.getElementById('register-form').classList.add('hidden');
+        });
+
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('register-username').value;
+            const password = document.getElementById('register-password').value;
+
+            const res = await fetch('http://localhost:3000/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+
+            if (res.ok) {
+                alert('Registration successful!');
+            } else {
+                const errorData = await res.json();
+                alert(errorData.message || 'Registration failed');
+            }
+        });
+
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+
+            const res = await fetch('http://localhost:3000/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                if (data.token) {
+                    token = data.token;
+                    userId = data.userId; // Simpan userId dari respons
+                    document.getElementById('auth-section').style.display = 'none';
+                    document.getElementById('file-section').style.display = 'block';
+                    document.getElementById('uploaded-files-section').style.display = 'block';
+                    document.getElementById('logout-button').classList.remove('hidden'); // Tampilkan tombol logout
+                    loadFiles();
+                }
+            } else {
+                const errorData = await res.json();
+                alert(errorData.message || 'Login failed');
+            }
+        });
+
+        document.getElementById('upload-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const file = document.getElementById('file').files[0];
+
+            if (!file) {
+                alert('Please select a file.');
+                return;
+            }
+
+            // Validasi ukuran file (contoh: maksimal 5 MB)
+            const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
+            if (file.size > MAX_SIZE) {
+                alert('File size exceeds 5 MB.');
+                return;
+            }
+
+            // Validasi tipe file (contoh: hanya PDF atau gambar)
+            const validTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+            if (!validTypes.includes(file.type)) {
+                alert('Invalid file type. Only PDF, JPG, and PNG are allowed.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const res = await fetch('http://localhost:3000/documents/uploads', {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${token}` },
+                body: formData
+            });
+
+            if (res.ok) {
+                alert('File uploaded successfully!');
+                loadFiles();
+            } else {
+                const errorData = await res.json();
+                alert(errorData.message || 'Upload failed');
+            }
+        });
+
+
+        async function loadFiles() {
+            const res = await fetch(`http://localhost:3000/documents/${userId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            if (res.ok) {
+                const data = await res.json(); // Respons server
+                console.log('Files loaded:', data); // Debug respons
+
+                // Ambil array dokumen dari respons
+                const files = data.documents;
+
+                const tbody = document.querySelector('#files-table tbody');
+                tbody.innerHTML = '';
+
+                // Iterasi melalui array dokumen
+                files.forEach(file => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                <td>${file.file_name}</td>
+                <td>${file.file_type}</td>
+                <td>${(file.file_size / 1024).toFixed(2)} KB</td>
+                <td>${new Date(file.uploaded_at).toLocaleString()}</td>
+                <td><button onclick="deleteFile(${file.id})">Delete</button></td>
+            `;
+                    tbody.appendChild(tr);
+                });
+            } else {
+                alert('Failed to load files');
+            }
+        }
+
+
+        async function deleteFile(id) {
+            const res = await fetch(`http://localhost:3000/documents/${id}`, {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            if (res.ok) {
+                loadFiles();
+            } else {
+                alert('Failed to delete file');
+            }
+        }
+
+        document.getElementById('logout-button').addEventListener('click', () => {
+            token = '';
+            userId = '';
+            document.getElementById('auth-section').style.display = 'block';
+            document.getElementById('file-section').style.display = 'none';
+            document.getElementById('uploaded-files-section').style.display = 'none';
+            document.getElementById('logout-button').classList.add('hidden'); // Sembunyikan tombol logout
+        });
+    </script>
+</body>
+
+</html>
